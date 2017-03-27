@@ -64,8 +64,10 @@ class huffmanTreeNode
 	huffmanTreeNode* parent;
 	
 	uint32_t weight;
-
-	std::vector<bool> symbolCode;	
+	
+	uint32_t symbolCode;
+	uint32_t symbolLen;
+	//std::vector<bool> symbolCode;	
 	
 	huffmanTreeNode(huffmanTreeNode* _parent)
 	{
@@ -76,8 +78,21 @@ class huffmanTreeNode
 		
 		if(parent!=NULL)
 		{
-			symbolCode.insert(symbolCode.begin(), parent->symbolCode.begin(), parent->symbolCode.end());
+			//symbolCode.insert(symbolCode.begin(), parent->symbolCode.begin(), parent->symbolCode.end());
+			symbolCode = parent->symbolCode;
+			symbolLen = parent->symbolLen;
 		}
+		else
+		{
+			symbolLen = 0;
+			symbolCode = 0;
+		}
+	}
+	
+	void symbolCodePushBack(uint8_t c)
+	{
+		if(c!=0) symbolCode = symbolCode|1<<symbolLen;
+		symbolLen++;
 	}
 };
 
@@ -86,17 +101,23 @@ class huffmanTree
 	public:
 	Simbol *simbols;
 	
-	std::vector<bool> outputBuf;
+	//std::vector<bool> outputBuf;
+	
+	unsigned char *outputBuf;
+	uint32_t outputBufByteLen = 0;
+	uint32_t outputBufBiteLen = 0;
 	
 	huffmanTreeNode *rootNode; //корень дерева
 	huffmanTreeNode *emptyNode; //пустой элемент дерева
 	
 	huffmanTree()
 	{
+		outputBuf = new unsigned char[BUFFERSIZE];
+		
 		simbols = new Simbol[(int)pow(2,BIT_PER_SIMBOL)];
 		rootNode = new huffmanTreeNode(NULL);
 		emptyNode = rootNode;
-		emptyNode->symbolCode.push_back(0);
+		emptyNode->symbolCodePushBack(0);
 	}
 	
 	void add(unsigned char smb)
@@ -129,6 +150,22 @@ class huffmanTree
 		{
 			outputBuf.insert(outputBuf.end(), simbols[smb].ref->symbolCode.begin(), simbols[smb].ref->symbolCode.end());
 			simbols[smb].ref->weight += 1;
+		}
+	}
+	
+	void outputBufPushBack(uint32_t code, uint32_t len)
+	{
+		if(outputBufBiteLen+len>=8)
+		{
+			
+		}
+		else
+		{
+			//for(int i=0;i<len;i++)
+			{
+				outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code>>outputBufBiteLen)
+			}
+			
 		}
 	}
 	
