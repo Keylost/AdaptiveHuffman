@@ -1,36 +1,39 @@
-#pragma once
-#include <math.h>
 
-#define ENCODER_BUFFER_SIZE 256
+#ifndef HUFFMAN
+
+#define HUFFMAN
+
+#include <math.h>
+#include <stdint.h>
+#include <vector>
+#include <cstddef>
+#include <stdio.h>
+//#include <unistd.h>
+
+#define BUFFERSIZE	256
 #define BIT_PER_SIMBOL 8 //сколько бит входной последовательности считать символом(только 8 сейчас поддерживается<(*_*)> )
 
-
+class huffmanTreeNode;
+/*
 bool getBitOfChar(char *byte, uint8_t bit)
 {
 	return (byte&(1<<bit));
 }
+*/
 
-void addCharToBitArray(std::vector<bool> &array, char ascii)
-{
-	array.push_back(ascii&(1<<0));
-	array.push_back(ascii&(1<<1));
-	array.push_back(ascii&(1<<2));
-	array.push_back(ascii&(1<<3));
-	array.push_back(ascii&(1<<4));
-	array.push_back(ascii&(1<<5));
-	array.push_back(ascii&(1<<6));
-	array.push_back(ascii&(1<<7));
-}
+void addCharToBitArray(std::vector<bool> &array, char ascii);
 
+/*
 class outputBuffer
 {
 	public:
 	char *buf;
-	uint32_t curLen = 0; //текущая длина буфера в битах
+	uint32_t curLen; //текущая длина буфера в битах
 	
 	outputBuffer()
 	{
 		buf = new char[ENCODER_BUFFER_SIZE];
+		curLen = 0;
 	}
 	
 	void addToBuffer(uint32_t simCode, uint32_t lenCode)
@@ -40,11 +43,11 @@ class outputBuffer
 	}
 	
 };
-
-
+*/
 
 class Simbol
 {
+	public:
 	huffmanTreeNode *ref;
 	
 	Simbol()
@@ -55,15 +58,14 @@ class Simbol
 
 class huffmanTreeNode
 {
+	public:
 	huffmanTreeNode* left;
 	huffmanTreeNode* right;
 	huffmanTreeNode* parent;
 	
-	long uint32_t weight;
+	uint32_t weight;
 
 	std::vector<bool> symbolCode;	
-	
-	public:
 	
 	huffmanTreeNode(huffmanTreeNode* _parent)
 	{
@@ -74,13 +76,14 @@ class huffmanTreeNode
 		
 		if(parent!=NULL)
 		{
-			symbolCode.insert(symbolCode.begin(), parent.symbolCode.begin(), parent.symbolCode.end());
+			symbolCode.insert(symbolCode.begin(), parent->symbolCode.begin(), parent->symbolCode.end());
 		}
 	}
 };
 
 class huffmanTree
 {
+	public:
 	Simbol *simbols;
 	
 	std::vector<bool> outputBuf;
@@ -90,10 +93,10 @@ class huffmanTree
 	
 	huffmanTree()
 	{
-		simbols = new Simbol[pow(2,BIT_PER_SIMBOL)];
+		simbols = new Simbol[(int)pow(2,BIT_PER_SIMBOL)];
 		rootNode = new huffmanTreeNode(NULL);
 		emptyNode = rootNode;
-		emptyNode.symbolCode.push_back(0);
+		emptyNode->symbolCode.push_back(0);
 	}
 	
 	void add(unsigned char smb)
@@ -103,7 +106,7 @@ class huffmanTree
 			/*
 			 * Добавить в выходной поток код ESC-символа
 			 */
-			outputBuf.insert(outputBuf.end(), emptyNode.symbolCode.begin(), emptyNode.symbolCode.end());
+			outputBuf.insert(outputBuf.end(), emptyNode->symbolCode.begin(), emptyNode->symbolCode.end());
 			/*
 			 * Добавить в выходной поток ASCII-код символа
 			 */
@@ -112,20 +115,20 @@ class huffmanTree
 			/*
 			 * Создать лист под новый элемент и новый пустой элемент
 			 */
-			emptyNode.left = new huffmanTreeNode(emptyNode);
-			emptyNode.left.symbolCode.push_back(0); //левая ветвь с кодом 0
-			emptyNode.left.weight = 1; //в левый лист помещается новый символ
+			emptyNode->left = new huffmanTreeNode(emptyNode);
+			emptyNode->left->symbolCode.push_back(0); //левая ветвь с кодом 0
+			emptyNode->left->weight = 1; //в левый лист помещается новый символ
 			
-			emptyNode.right = new huffmanTreeNode(emptyNode);
-			emptyNode.right.symbolCode.push_back(1); //правая ветвь с кодом 1
+			emptyNode->right = new huffmanTreeNode(emptyNode);
+			emptyNode->right->symbolCode.push_back(1); //правая ветвь с кодом 1
 					
-			simbols[smb].ref = emptyNode.left;
-			emptyNode = emptyNode.right; //правый лист становится новым пустым элементом
+			simbols[smb].ref = emptyNode->left;
+			emptyNode = emptyNode->right; //правый лист становится новым пустым элементом
 		}
 		else
 		{
-			outputBuf.insert(outputBuf.end(), simbols[smb].ref.symbolCode.begin(), simbols[smb].ref.symbolCode.end());
-			simbols[smb].ref.weight += 1;
+			outputBuf.insert(outputBuf.end(), simbols[smb].ref->symbolCode.begin(), simbols[smb].ref->symbolCode.end());
+			simbols[smb].ref->weight += 1;
 		}
 	}
 	
@@ -135,6 +138,8 @@ class huffmanTree
 	}
 };
 
-int decoder();
+int decoder(const char* filePath);
 
 int encoder(const char* filePath);
+
+#endif

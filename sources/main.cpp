@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <getopt.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "huffman.hpp"
 
@@ -7,14 +9,17 @@ void usage();
 
 int main(int argc, char **argv)
 {
-	char *filePath; //path to file
+	char *filePathEnc = NULL; //path to file
+	char *filePathDec = NULL; //path to file
+	char *filePathOut = NULL; //path to file
 	
-	const char* short_options = "he:d:";
+	const char* short_options = "he:d:o:";
 	const struct option long_options[] =
 	{
 		{"help",no_argument,NULL,'e'},
 		{"encode",required_argument,NULL,'e'},
 		{"decode",required_argument,NULL,'d'},
+		{"output",required_argument,NULL,'o'},
 		{NULL,0,NULL,0}
 	};
 	
@@ -22,7 +27,7 @@ int main(int argc, char **argv)
 	int option_index;
 
 	while ((rez=getopt_long(argc,argv,short_options,long_options,&option_index))!=-1)
-		{
+	{
 			switch(rez)
 			{
 				case 'h': 
@@ -32,14 +37,31 @@ int main(int argc, char **argv)
 				};
 				case 'e':
 				{
-					filePath = new char[strlen(optarg)+1];
-					strcpy(filePath,optarg);
+					if(filePathDec != NULL)
+					{
+						fprintf(stderr,"[W]: Only -e or -d can be specified at once\n");
+						break;
+					}
+					filePathEnc = new char[strlen(optarg)+1];
+					strcpy(filePathEnc,optarg);
+					
 					break;
 				};				
 				case 'd':
 				{
-					filePath = new char[strlen(optarg)+1];
-					strcpy(filePath,optarg);
+					if(filePathEnc != NULL)
+					{
+						fprintf(stderr,"[W]: Only -e or -d can be specified at once\n");
+						break;
+					}					
+					filePathDec = new char[strlen(optarg)+1];
+					strcpy(filePathDec,optarg);
+					break;
+				};
+				case 'o':
+				{				
+					filePathOut = new char[strlen(optarg)+1];
+					strcpy(filePathOut,optarg);
 					break;
 				};
 				default:
@@ -49,7 +71,28 @@ int main(int argc, char **argv)
 					break;
 				};
 			};
-	};	
+	};
+	
+	if(filePathOut == NULL)
+	{
+		fprintf(stderr,"[E]: -o option must be specified\n");
+	}
+	
+	if(filePathEnc != NULL || filePathDec != NULL)
+	{
+		if(filePathEnc != NULL)
+		{
+			encoder(filePathEnc);
+		}
+		else
+		{
+			decoder(filePathDec);
+		}
+	}
+	else
+	{
+		fprintf(stderr,"[E]: -e or -d option must be specified\n");
+	}
 	
 	return 0;
 }
