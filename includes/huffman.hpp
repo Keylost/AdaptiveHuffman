@@ -21,6 +21,7 @@ bool getBitOfChar(char *byte, uint8_t bit)
 }
 */
 
+void printSimbol(unsigned char c);
 void addCharToBitArray(std::vector<bool> &array, char ascii);
 
 /*
@@ -91,7 +92,7 @@ class huffmanTreeNode
 	
 	void symbolCodePushBack(uint8_t c)
 	{
-		if(c!=0) symbolCode = symbolCode|1<<symbolLen;
+		if(c!=0) symbolCode = symbolCode|(1<<(32-symbolLen));
 		symbolLen++;
 	}
 };
@@ -117,7 +118,7 @@ class huffmanTree
 		simbols = new Simbol[(int)pow(2,BIT_PER_SIMBOL)];
 		rootNode = new huffmanTreeNode(NULL);
 		emptyNode = rootNode;
-		emptyNode->symbolCodePushBack(0);
+		//emptyNode->symbolCodePushBack(0);
 	}
 	
 	void add(unsigned char smb)
@@ -127,45 +128,49 @@ class huffmanTree
 			/*
 			 * Добавить в выходной поток код ESC-символа
 			 */
-			outputBuf.insert(outputBuf.end(), emptyNode->symbolCode.begin(), emptyNode->symbolCode.end());
+			//outputBuf.insert(outputBuf.end(), emptyNode->symbolCode.begin(), emptyNode->symbolCode.end());
+			printSimbol(emptyNode->symbolCode);
+			outputBufPushBack(emptyNode->symbolCode, emptyNode->symbolLen);
+			
 			/*
 			 * Добавить в выходной поток ASCII-код символа
 			 */
-			addCharToBitArray(outputBuf, smb);
+			//addCharToBitArray(outputBuf, smb);
+			outputBufPushBack(smb, 8);
 			
 			/*
 			 * Создать лист под новый элемент и новый пустой элемент
 			 */
 			emptyNode->left = new huffmanTreeNode(emptyNode);
-			emptyNode->left->symbolCode.push_back(0); //левая ветвь с кодом 0
+			emptyNode->left->symbolCodePushBack(0); //левая ветвь с кодом 0
 			emptyNode->left->weight = 1; //в левый лист помещается новый символ
 			
 			emptyNode->right = new huffmanTreeNode(emptyNode);
-			emptyNode->right->symbolCode.push_back(1); //правая ветвь с кодом 1
+			emptyNode->right->symbolCodePushBack(1); //правая ветвь с кодом 1
 					
 			simbols[smb].ref = emptyNode->left;
 			emptyNode = emptyNode->right; //правый лист становится новым пустым элементом
 		}
 		else
 		{
-			outputBuf.insert(outputBuf.end(), simbols[smb].ref->symbolCode.begin(), simbols[smb].ref->symbolCode.end());
+			outputBufPushBack(simbols[smb].ref->symbolCode, simbols[smb].ref->symbolLen);
 			simbols[smb].ref->weight += 1;
 		}
 	}
 	
 	void outputBufPushBack(uint32_t code, uint32_t len)
 	{
-		if(outputBufBiteLen+len>=8)
+		uint32_t bits = outputBufBiteLen+len;
+		outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code>>outputBufBiteLen);
+		if(bits>=8)
 		{
-			
+			outputBufByteLen += bits/8;
+			outputBufBiteLen = bits%8;
 		}
 		else
 		{
-			//for(int i=0;i<len;i++)
-			{
-				outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code>>outputBufBiteLen)
-			}
-			
+			//outputBufByteLen++;
+			outputBufBiteLen = bits;
 		}
 	}
 	

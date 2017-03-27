@@ -1,5 +1,17 @@
 #include "huffman.hpp"
 
+void printSimbol(unsigned char c)
+{
+	//printf("%c\t", c);
+	for(int i=0;i<8;i++)
+	{
+		if (c & 1) printf("1");
+		else printf("0");
+		c >>= 1;
+	}
+	printf("\n");
+}
+
 void printBinary(huffmanTree &tree)
 {
 	for(int i=0;i<tree.outputBufByteLen;i++)
@@ -11,10 +23,17 @@ void printBinary(huffmanTree &tree)
 			else printf("0");
 			n >>= 1;
 		}
+		printf("\t");
 	}
-	outputBufBiteLen
 	
-
+	unsigned char n = tree.outputBuf[tree.outputBufByteLen];
+	for(int i=0;i<tree.outputBufBiteLen;i++)
+	{
+		if (n & 1) printf("1");
+		else printf("0");
+		n >>= 1;
+	}
+	
 	printf("\n");
 }
 
@@ -38,15 +57,11 @@ int encoder(const char* filePath)
 	{
 		for(int i=0;i<bytesReaded;i++)
 		{
-			printf("%c\n", buffer[i]);
+			//printSimbol(buffer[i]);
 			
 			tree.add(buffer[i]);
 			
-			for(size_t j=0;j<tree.outputBuf.size(); j++)
-			{
-				printf("%d ", tree.outputBuf[j]);
-			}
-			printf("\n");
+			printBinary(tree);
 			
 		}
 	}
