@@ -92,6 +92,19 @@ int encoder(const char* filePathInp, const char* filePathOut)
 	return 0;
 }
 
+
+void addCharToBitArray(std::vector<bool> &array, char ascii)
+{
+	array.push_back((ascii&(1<<0)) > 0 ? 1 : 0);
+	array.push_back(ascii&(1<<1)  > 0 ? 1 : 0);
+	array.push_back(ascii&(1<<2)  > 0 ? 1 : 0);
+	array.push_back(ascii&(1<<3)  > 0 ? 1 : 0);
+	array.push_back(ascii&(1<<4)  > 0 ? 1 : 0);
+	array.push_back(ascii&(1<<5)  > 0 ? 1 : 0);
+	array.push_back(ascii&(1<<6)  > 0 ? 1 : 0);
+	array.push_back(ascii&(1<<7)  > 0 ? 1 : 0);
+}
+
 int decoder(const char* filePathInp, const char* filePathOut)
 {
 	return 0;

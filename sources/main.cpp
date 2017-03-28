@@ -82,11 +82,11 @@ int main(int argc, char **argv)
 	{
 		if(filePathEnc != NULL)
 		{
-			encoder(filePathEnc);
+			encoder(filePathEnc, filePathOut);
 		}
 		else
 		{
-			decoder(filePathDec);
+			decoder(filePathDec, filePathOut);
 		}
 	}
 	else
