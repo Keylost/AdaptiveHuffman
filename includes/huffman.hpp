@@ -8,6 +8,8 @@
 #include <vector>
 #include <cstddef>
 #include <stdio.h>
+
+#include <memory.h>
 //#include <unistd.h>
 
 #define BUFFERSIZE	256
@@ -92,7 +94,7 @@ class huffmanTreeNode
 	
 	void symbolCodePushBack(uint8_t c)
 	{
-		if(c!=0) symbolCode = symbolCode|(1<<(32-symbolLen));
+		if(c!=0) symbolCode = symbolCode|(1<<(symbolLen));
 		symbolLen++;
 	}
 };
@@ -114,6 +116,7 @@ class huffmanTree
 	huffmanTree()
 	{
 		outputBuf = new unsigned char[BUFFERSIZE];
+		memset(outputBuf, '\0', BUFFERSIZE);
 		
 		simbols = new Simbol[(int)pow(2,BIT_PER_SIMBOL)];
 		rootNode = new huffmanTreeNode(NULL);
@@ -129,14 +132,14 @@ class huffmanTree
 			 * Добавить в выходной поток код ESC-символа
 			 */
 			//outputBuf.insert(outputBuf.end(), emptyNode->symbolCode.begin(), emptyNode->symbolCode.end());
-			printSimbol(emptyNode->symbolCode);
-			outputBufPushBack(emptyNode->symbolCode, emptyNode->symbolLen);
+			//printSimbol(emptyNode->symbolCode);
+			//outputBufPushBack(emptyNode->symbolCode, emptyNode->symbolLen);
 			
 			/*
 			 * Добавить в выходной поток ASCII-код символа
 			 */
 			//addCharToBitArray(outputBuf, smb);
-			outputBufPushBack(smb, 8);
+			outputBufPushBack((uint32_t)smb, 8);
 			
 			/*
 			 * Создать лист под новый элемент и новый пустой элемент
@@ -161,17 +164,38 @@ class huffmanTree
 	void outputBufPushBack(uint32_t code, uint32_t len)
 	{
 		uint32_t bits = outputBufBiteLen+len;
-		outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code>>outputBufBiteLen);
-		if(bits>=8)
+		
+		printSimbol((uint8_t)code);
+		
+		code = ((uint32_t)code)<<24;
+		
+		outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code);
+		
+		printSimbol(emptyNode->symbolCode);
+		printSimbol(code);
+		
+		outputBufByteLen += bits/8;
+		outputBufBiteLen = bits%8;
+		
+		/*
+		if(bits>=16)
 		{
+			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(((uint16_t)code)<<16-outputBufBiteLen-len);
+			outputBufByteLen += 1;
+			outputBufBiteLen = bits%8;			
+		}
+		else if(bits>=8)
+		{
+			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(((uint16_t)code)<<16-outputBufBiteLen-len);
 			outputBufByteLen += bits/8;
 			outputBufBiteLen = bits%8;
 		}
 		else
 		{
-			//outputBufByteLen++;
+			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(((uint8_t)code)<<(8-outputBufBiteLen-len));
 			outputBufBiteLen = bits;
 		}
+		*/
 	}
 	
 	void updateTree()

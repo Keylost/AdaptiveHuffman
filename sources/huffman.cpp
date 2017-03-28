@@ -2,7 +2,7 @@
 
 void printSimbol(unsigned char c)
 {
-	//printf("%c\t", c);
+	printf("%c\t", c);
 	for(int i=0;i<8;i++)
 	{
 		if (c & 1) printf("1");
@@ -57,7 +57,7 @@ int encoder(const char* filePath)
 	{
 		for(int i=0;i<bytesReaded;i++)
 		{
-			//printSimbol(buffer[i]);
+			printSimbol(buffer[i]);
 			
 			tree.add(buffer[i]);
 			
