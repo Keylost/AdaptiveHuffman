@@ -116,6 +116,7 @@ class huffmanTree
 		
 	}
 	
+	//int cnt = 0;
 	void add(unsigned char smb)
 	{
 		if(simbols[smb].ref == NULL)
@@ -146,6 +147,9 @@ class huffmanTree
 			
 			simbols[smb].ref = emptyNode->left;
 			emptyNode = emptyNode->right; //правый лист становится новым пустым элементом
+			
+			//cnt++;
+			//printf("ololo %d\n", cnt );
 		}
 		else
 		{
@@ -184,16 +188,16 @@ class huffmanTree
 	void updateTree(huffmanTreeNode *node) ///TODO: Нуждается в адской оптимизации
 	{		
 		huffmanTreeNode *curNode = node;
-		while(curNode->parent != NULL)
+		while(curNode != NULL)
 		{
-			int ind = curNode->indexInNodeList;
+			int ind = curNode->indexInNodeList == 0 ? 0 : (curNode->indexInNodeList-1);
 			
 			while(ind>0 && nodeList[ind]->weight == curNode->weight)
 			{
 				ind--;
 			}
 			
-			if(ind==curNode->indexInNodeList || curNode->parent == nodeList[ind])
+			if(nodeList[ind]->weight != curNode->weight || curNode->parent == nodeList[ind] || ind == 0)
 			{
 				curNode->weight++;
 			}
