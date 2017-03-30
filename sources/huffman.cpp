@@ -86,6 +86,8 @@ int encoder(const char* filePathInp, const char* filePathOut)
 		printf("[E]: Error occured while reading input stream\n");
 	}
 	
+	tree.printTree();
+	
 	fclose(fpInp);
 	fclose(fpOut);
 	

@@ -106,6 +106,16 @@ class huffmanTree
 		emptyNode = rootNode;
 	}
 	
+	void printTree()
+	{
+		printf("tree:\n");
+		for(unsigned i=0; i<nodeList.size(); i++)
+		{
+			printf("%d\n", nodeList[i]->symbolLen);
+		}
+		
+	}
+	
 	void add(unsigned char smb)
 	{
 		if(simbols[smb].ref == NULL)
@@ -174,11 +184,11 @@ class huffmanTree
 	void updateTree(huffmanTreeNode *node) ///TODO: Нуждается в адской оптимизации
 	{		
 		huffmanTreeNode *curNode = node;
-		while(curNode != NULL)
+		while(curNode->parent != NULL)
 		{
 			int ind = curNode->indexInNodeList;
 			
-			while(ind>=0 && nodeList[ind]->weight == curNode->weight)
+			while(ind>0 && nodeList[ind]->weight == curNode->weight)
 			{
 				ind--;
 			}
@@ -189,7 +199,8 @@ class huffmanTree
 			}
 			else
 			{
-				if(nodeList[ind]->left == NULL) //если лист, меняем листы
+				curNode->weight++;
+				//if(nodeList[ind]->left == NULL) //если лист, меняем листы
 				{
 					huffmanTreeNode *ndlp = nodeList[ind]->parent;
 					if(nodeList[ind]->parent->left == nodeList[ind]) //левый сын
@@ -230,22 +241,32 @@ class huffmanTree
 							ndlp->right = curNode;							
 						}
 					}
+					
+					uint32_t indtmp = curNode->indexInNodeList;
 					nodeList[ind]->indexInNodeList = curNode->indexInNodeList;
+					nodeList[curNode->indexInNodeList] = nodeList[ind];
+					
 					curNode->indexInNodeList = ind;
 					
 					nodeList[ind] = curNode;
 					
+					curNode = nodeList[indtmp];
 					
-					huffmanTreeNode *cntmp = curNode;
-					curNode = nodeList[ind];
-					nodeList[ind] = curNode;
+					uint32_t smc = nodeList[indtmp]->symbolCode;
+					uint32_t sml = nodeList[indtmp]->symbolLen;
+					
+					nodeList[indtmp]->symbolCode = nodeList[ind]->symbolCode;
+					nodeList[indtmp]->symbolCode = nodeList[ind]->symbolLen;
+					
+					nodeList[ind]->symbolCode = smc;
+					nodeList[ind]->symbolCode = sml;
 					
 				}
-				else //иначе замена поддеревьев
+				//else //иначе замена поддеревьев
 				{
 					
 				}
-				swap()
+				//swap()
 				///нужно обновлять коды
 			}
 			curNode = curNode->parent;
@@ -254,6 +275,8 @@ class huffmanTree
 	
 	void bufferFlush(FILE *fp) //выводит полностью заполненные четырехбайтовые наборы в файл. Биты остаются нетронуты
 	{
+		printf("flushed %d\n", outputBufByteLen*4);
+		
 		fwrite(outputBuf, 4, outputBufByteLen, fp);
 		if(outputBufBiteLen>0)
 		{
@@ -262,11 +285,14 @@ class huffmanTree
 			outputBuf[0] = tmp;
 		}
 		outputBufByteLen = 0;
+		
 	}
 
 	void bufferFlushWithEOF(FILE *fp) //выводит полностью заполненные четырехбайтовые наборы в файл, а также все биты. В конец добавляет ESC-символ.
 	{
 		outputBufPushBack(emptyNode->symbolCode, emptyNode->symbolLen);
+		
+		printf("flushed %d\n", outputBufByteLen*4);
 		
 		fwrite(outputBuf, 4, outputBufByteLen, fp);
 		
