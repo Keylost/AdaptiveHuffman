@@ -80,16 +80,15 @@ class huffmanTree
 {
 	public:
 	Simbol *simbols;
-	std::vector<huffmanTreeNode*> nodeList; 
+	
+	huffmanTreeNode** nodeList;
+	uint32_t nodeListSize = 0;
 	
 	uint32_t *outputBuf;
 	uint32_t outputBufByteLen;
 	uint32_t outputBufBiteLen;
 	
-	huffmanTreeNode *rootNode; //корень дерева
-	huffmanTreeNode *emptyNode; //пустой элемент дерева
-	
-	huffmanTree()
+	huffmanTree() //init
 	{
 		outputBufByteLen = 0;
 		outputBufBiteLen = 0;
@@ -99,21 +98,20 @@ class huffmanTree
 		
 		simbols = new Simbol[(int)pow(2,BIT_PER_SIMBOL)];
 		
-		rootNode = new huffmanTreeNode(NULL);
-		nodeList.push_back(rootNode);
-		rootNode->indexInNodeList = (nodeList.size()-1);
+		nodeList = new huffmanTreeNode*[(int)pow(2,BIT_PER_SIMBOL)*2];
 		
-		emptyNode = rootNode;
+		nodeList[0] = new huffmanTreeNode(NULL);
+		nodeList[0]->indexInNodeList = 0;
+		nodeListSize = 1;
 	}
 	
 	void printTree()
 	{
 		printf("tree:\n");
-		for(unsigned i=0; i<nodeList.size(); i++)
+		for(unsigned i=0; i<nodeListSize; i++)
 		{
 			printf("%d\n", nodeList[i]->symbolLen);
 		}
-		
 	}
 	
 	void add(unsigned char smb)
@@ -123,7 +121,7 @@ class huffmanTree
 			/*
 			 * Добавить в выходной поток код ESC-символа
 			 */
-			outputBufPushBack(emptyNode->symbolCode, emptyNode->symbolLen);
+			outputBufPushBack(nodeList[nodeListSize-1]->symbolCode, nodeList[nodeListSize-1]->symbolLen);
 			
 			/*
 			 * Добавить в выходной поток ASCII-код символа
@@ -133,19 +131,15 @@ class huffmanTree
 			/*
 			 * Создать лист под новый элемент и новый пустой элемент
 			 */
-			emptyNode->left = new huffmanTreeNode(emptyNode);
-			emptyNode->left->symbolCodePushBack(0); //левая ветвь с кодом 0
-			//emptyNode->left->weight = 1; //в левый лист помещается новый символ
-			nodeList.push_back(emptyNode->left);
-			emptyNode->left->indexInNodeList = (nodeList.size()-1);
+			nodeList[nodeListSize] = new huffmanTreeNode(nodeList[nodeListSize-1]);
+			nodeList[nodeListSize]->symbolCodePushBack(0); //левая ветвь с кодом 0
+			//nodeList[nodeListSize]->indexInNodeList = (nodeList.size()-1);
 			
-			emptyNode->right = new huffmanTreeNode(emptyNode);
-			emptyNode->right->symbolCodePushBack(1); //правая ветвь с кодом 1
-			nodeList.push_back(emptyNode->right);
-			emptyNode->right->indexInNodeList = (nodeList.size()-1);
+			nodeList[nodeListSize+1] = new huffmanTreeNode(nodeList[nodeListSize-1]);
+			nodeList[nodeListSize+1]->symbolCodePushBack(1); //правая ветвь с кодом 1
+			//emptyNode->right->indexInNodeList = (nodeList.size()-1);
 			
-			simbols[smb].ref = emptyNode->left;
-			emptyNode = emptyNode->right; //правый лист становится новым пустым элементом
+			simbols[smb].ref = nodeList[nodeListSize];
 		}
 		else
 		{
