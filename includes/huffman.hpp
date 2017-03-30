@@ -171,25 +171,84 @@ class huffmanTree
 		}
 	}
 	
-	void updateTree(huffmanTreeNode *node)
-	{
-		if(nodeList[node->indexInNodeList]->weight > node->weight+1)
-		{
-			
-		}
-		
-		huffmanTreeNode *curNode = node->parent;
+	void updateTree(huffmanTreeNode *node) ///TODO: Нуждается в адской оптимизации
+	{		
+		huffmanTreeNode *curNode = node;
 		while(curNode != NULL)
 		{
-			curNode->weight += 1;
-			if(curNode->left->weight < curNode->right->weight)
+			int ind = curNode->indexInNodeList;
+			
+			while(ind>=0 && nodeList[ind]->weight == curNode->weight)
 			{
-				huffmanTreeNode *tmp = curNode->left;
-				curNode->left = curNode->right;
-				curNode->right = tmp;
+				ind--;
+			}
+			
+			if(ind==curNode->indexInNodeList || curNode->parent == nodeList[ind])
+			{
+				curNode->weight++;
+			}
+			else
+			{
+				if(nodeList[ind]->left == NULL) //если лист, меняем листы
+				{
+					huffmanTreeNode *ndlp = nodeList[ind]->parent;
+					if(nodeList[ind]->parent->left == nodeList[ind]) //левый сын
+					{
+						if(curNode->parent->left == curNode)
+						{
+							curNode->parent->left = nodeList[ind];
+							nodeList[ind]->parent = curNode->parent;
+							
+							curNode->parent = ndlp;
+							ndlp->left = curNode;
+						}
+						else
+						{
+							curNode->parent->right = nodeList[ind];
+							nodeList[ind]->parent = curNode->parent;
+							
+							curNode->parent = ndlp;
+							ndlp->left = curNode;							
+						}
+					}
+					else
+					{
+						if(curNode->parent->left == curNode)
+						{
+							curNode->parent->left = nodeList[ind];
+							nodeList[ind]->parent = curNode->parent;
+							
+							curNode->parent = ndlp;
+							ndlp->right = curNode;
+						}
+						else
+						{
+							curNode->parent->right = nodeList[ind];
+							nodeList[ind]->parent = curNode->parent;
+							
+							curNode->parent = ndlp;
+							ndlp->right = curNode;							
+						}
+					}
+					nodeList[ind]->indexInNodeList = curNode->indexInNodeList;
+					curNode->indexInNodeList = ind;
+					
+					nodeList[ind] = curNode;
+					
+					
+					huffmanTreeNode *cntmp = curNode;
+					curNode = nodeList[ind];
+					nodeList[ind] = curNode;
+					
+				}
+				else //иначе замена поддеревьев
+				{
+					
+				}
+				swap()
+				///нужно обновлять коды
 			}
 			curNode = curNode->parent;
-			///нужно обновлять коды
 		}
 	}
 	
