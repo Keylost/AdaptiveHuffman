@@ -87,6 +87,8 @@ int encoder(const char* filePathInp, const char* filePathOut)
 	}
 	
 	tree.printTree();
+	huffmanTreeNode* root = tree.rootNode;
+	tree.printTreeCG(root,0);
 	
 	fclose(fpInp);
 	fclose(fpOut);

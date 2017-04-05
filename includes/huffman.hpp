@@ -108,12 +108,34 @@ class huffmanTree
 	
 	void printTree()
 	{
-		printf("tree:\n");
+		int maxLen = 0;
+		printf("tree: size %lu \n", nodeList.size());
 		for(unsigned i=0; i<nodeList.size(); i++)
 		{
-			printf("%d\n", nodeList[i]->symbolLen);
+			printf("%d	", nodeList[i]->weight);
+			
+			huffmanTreeNode* cur=nodeList[i];
+			int lenTmp = 0;
+			while(cur->parent)
+			{
+				lenTmp++;
+				cur = cur->parent;
+			}
+			if(lenTmp>maxLen) maxLen = lenTmp;
 		}
-		
+		printf("\n");
+		printf("maxlen %d\n", maxLen);
+	}
+	
+	void printTreeCG(huffmanTreeNode *p,int level)
+	{
+		if(p)
+		{
+			printTreeCG(p->right,level + 1);
+			for(int i = 0;i< level;i++) printf("|	");
+			printf("%d\n", p->weight);
+			printTreeCG(p->left,level + 1);
+		}
 	}
 	
 	//int cnt = 0;
@@ -147,18 +169,19 @@ class huffmanTree
 			
 			simbols[smb].ref = emptyNode->left;
 			emptyNode = emptyNode->right; //правый лист становится новым пустым элементом
-			
-			//cnt++;
-			//printf("ololo %d\n", cnt );
 		}
 		else
 		{
 			outputBufPushBack(simbols[smb].ref->symbolCode, simbols[smb].ref->symbolLen);
-			//simbols[smb].ref->weight += 1;
 		}
 		
 		updateTree(simbols[smb].ref);
-		
+		huffmanTreeNode* root = rootNode;
+		printTreeCG(root,0);
+		printf("-----------------------------------\n");
+		printTree();
+		char c;
+		//scanf("%c\n", &c);
 	}
 	
 	void outputBufPushBack(uint32_t code, uint32_t len)
@@ -186,23 +209,26 @@ class huffmanTree
 	}
 	
 	void updateTree(huffmanTreeNode *node) ///TODO: Нуждается в адской оптимизации
-	{		
+	{
 		huffmanTreeNode *curNode = node;
 		while(curNode != NULL)
 		{
-			int ind = curNode->indexInNodeList == 0 ? 0 : (curNode->indexInNodeList-1);
+			int ind = curNode->indexInNodeList;// == 0 ? 0 : (curNode->indexInNodeList);
 			
-			while(ind>0 && nodeList[ind]->weight == curNode->weight)
+			while(ind>0 && nodeList[ind-1]->weight == curNode->weight)
 			{
 				ind--;
 			}
 			
-			if(nodeList[ind]->weight != curNode->weight || curNode->parent == nodeList[ind] || ind == 0)
+			printf("ind %d\n", ind);
+			
+			if(ind == curNode->indexInNodeList || curNode->parent == nodeList[ind] || ind == 0) //nodeList[ind]->weight > curNode->weight
 			{
 				curNode->weight++;
 			}
 			else
 			{
+				printf("update+++++++++++++++++++++++++++++++++++++++++++\n");
 				curNode->weight++;
 				//if(nodeList[ind]->left == NULL) //если лист, меняем листы
 				{
@@ -254,7 +280,7 @@ class huffmanTree
 					
 					nodeList[ind] = curNode;
 					
-					curNode = nodeList[indtmp];
+					//curNode = nodeList[indtmp];
 					
 					uint32_t smc = nodeList[indtmp]->symbolCode;
 					uint32_t sml = nodeList[indtmp]->symbolLen;
@@ -266,11 +292,6 @@ class huffmanTree
 					nodeList[ind]->symbolCode = sml;
 					
 				}
-				//else //иначе замена поддеревьев
-				{
-					
-				}
-				//swap()
 				///нужно обновлять коды
 			}
 			curNode = curNode->parent;
