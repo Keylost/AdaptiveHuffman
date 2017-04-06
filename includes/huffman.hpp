@@ -146,7 +146,7 @@ class huffmanTree
 			/*
 			 * Добавить в выходной поток код ESC-символа
 			 */
-			outputBufPushBack(emptyNode->symbolCode, emptyNode->symbolLen);
+			outputBufPushBack(emptyNode);
 			
 			/*
 			 * Добавить в выходной поток ASCII-код символа
@@ -172,17 +172,56 @@ class huffmanTree
 		}
 		else
 		{
-			outputBufPushBack(simbols[smb].ref->symbolCode, simbols[smb].ref->symbolLen);
+			outputBufPushBack(simbols[smb].ref);
 		}
 		
 		updateTree(simbols[smb].ref);
 		huffmanTreeNode* root = rootNode;
-		printTreeCG(root,0);
-		printf("-----------------------------------\n");
-		printTree();
+		//printTreeCG(root,0);
+		//printf("-----------------------------------\n");
+		//printTree();
 		char c;
 		//scanf("%c\n", &c);
 	}
+
+	void outputBufPushBack(huffmanTreeNode* node)
+	{
+		uint32_t code=0;
+		huffmanTreeNode* curNode = node;
+		uint32_t len = 0;
+		
+		while(curNode->parent)
+		{
+			if(node->parent->right == node)
+			{
+				code = code|(1<<len);
+			}
+			len++;
+			curNode = curNode->parent;
+		}
+
+		
+		uint32_t bits = outputBufBiteLen+len;
+		
+		if(bits>32)
+		{
+			uint32_t codebkp = code;
+			uint32_t left = (bits-32);
+			code = code>>left;
+			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code);
+			outputBufByteLen += 1;
+			codebkp = codebkp<<(32-left);
+			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(codebkp);
+			outputBufBiteLen = left;
+		}
+		else
+		{
+			code = code<<(32-bits);
+			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code);
+			outputBufByteLen += bits/32;
+			outputBufBiteLen = bits%32;
+		}
+	}	
 	
 	void outputBufPushBack(uint32_t code, uint32_t len)
 	{
