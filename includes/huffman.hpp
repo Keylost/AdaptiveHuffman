@@ -11,6 +11,8 @@
 
 #include <memory.h>
 
+#include "timer.hpp"
+
 #define BUFFERSIZE	256
 #define BIT_PER_SIMBOL 8 //сколько бит входной последовательности считать символом(только 8 сейчас поддерживается<(*_*)> )
 
@@ -21,6 +23,11 @@ bool getBitOfChar(char *byte, uint8_t bit)
 	return (byte&(1<<bit));
 }
 */
+
+/*
+ * Правая ветка - 1. Левая - 0. В левую ветку добавляется символ, в правую - ESC.
+ * 
+ */
 
 void printSimbol(uint32_t c);
 void addCharToBitArray(std::vector<bool> &array, char ascii);
@@ -44,6 +51,7 @@ class huffmanTreeNode
 	huffmanTreeNode* parent;
 	
 	uint32_t indexInNodeList; //huffmanTree::nodeList
+	unsigned char symbolValue;
 	
 	uint32_t weight;
 	
@@ -168,6 +176,7 @@ class huffmanTree
 			emptyNode->right->indexInNodeList = (nodeList.size()-1);
 			
 			simbols[smb].ref = emptyNode->left;
+			simbols[smb].ref->symbolValue = smb;
 			emptyNode = emptyNode->right; //правый лист становится новым пустым элементом
 		}
 		else
@@ -373,6 +382,44 @@ class huffmanTree
 		outputBufBiteLen = 0;
 		
 		memset(outputBuf, '\0', BUFFERSIZE);
+	}
+	
+	void decodeBites(unsigned char *buffer, uint32_t bufferLen, std::vector<char> outBuf)
+	{
+		uint32_t curByte = 0;
+		uint32_t curBite = 0;
+		huffmanTreeNode *curNode = rootNode;
+		huffmanTreeNode *prevNode = rootNode;
+		
+		for(int byte=0;byte<bufferLen;byte++)
+		{
+			//curNode = rootNode;
+			for(int bit=0;bit<8;bit++)
+			{
+				prevNode = curNode;
+				if( (buffer[curByte]&(1<<bit)) )
+				{
+					curNode = curNode->right;
+				}
+				else
+				{
+					curNode = curNode->left;
+				}
+				if(!curNode)
+				{
+					if(prevNode->weight)
+					{
+						outBuf.push_back((char)(prevNode->indexInNodeList));
+					}
+					else
+					{
+						
+					}
+				}
+			}
+			byte++;
+		}
+		
 	}
 	
 };
