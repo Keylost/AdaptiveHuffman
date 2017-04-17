@@ -141,7 +141,7 @@ class huffmanTree
 			/*
 			 * Добавить в выходной поток ASCII-код символа
 			 */
-			outputBufPushBack((uint32_t)smb, 8);
+			outputBufPushBack(smb);
 			
 			/*
 			 * Создать лист под новый элемент и новый пустой элемент
@@ -174,69 +174,54 @@ class huffmanTree
 
 	void outputBufPushBack(huffmanTreeNode* node)
 	{
-		uint32_t code=0;
+		uint32_t code = 0;
 		huffmanTreeNode* curNode = node;
 		uint32_t len = 0;
 		
 		while(curNode->parent)
 		{
-			code = code<<1;
 			if(curNode->parent->right == curNode)
 			{
-				code |= (1);
+				//outputBuf[outputBufByteLen] |= (1<<outputBufBiteLen);
+				code |= (1<<len);
 			}
 			len++;
+			/*
+			outputBufBiteLen++;
+			if(outputBufBiteLen==8)
+			{
+				outputBufByteLen++;
+				outputBufBiteLen = 0;
+			}
+			* */
 			curNode = curNode->parent;
 		}
-
 		
-		uint32_t bits = outputBufBiteLen+len;
+		for(int i=len-1;i>=0;i--)
+		{
+			outputBuf[outputBufByteLen] |= ((code>>i)<<outputBufBiteLen);
+			outputBufBiteLen++;
+			if(outputBufBiteLen==8)
+			{
+				outputBufByteLen++;
+				outputBufBiteLen = 0;
+			}
+		}		
 		
-		if(bits>32)
-		{
-			uint32_t codebkp = code;
-			uint32_t left = (bits-32);
-			code = code>>left;
-			code = code<<left;
-			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code);
-			outputBufByteLen += 1;
-			codebkp = codebkp<<(left);
-			codebkp = codebkp>>(left);
-			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(codebkp);
-			outputBufBiteLen = left;
-		}
-		else
-		{
-			code = code<<(outputBufBiteLen);
-			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code);
-			outputBufByteLen += bits/32;
-			outputBufBiteLen = bits%32;
-		}
+		return;
 	}	
 	
-	void outputBufPushBack(uint32_t code, uint32_t len)
+	void outputBufPushBack(unsigned char smb)
 	{
-		uint32_t bits = outputBufBiteLen+len;
-		
-		if(bits>32)
+		for(int i=0;i<8;i++)
 		{
-			uint32_t codebkp = code;
-			uint32_t left = (bits-32);
-			code = code>>left;
-			code = code<<left;
-			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code);
-			outputBufByteLen += 1;
-			codebkp = codebkp<<(left);
-			codebkp = codebkp>>(left);
-			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(codebkp);
-			outputBufBiteLen = left;
-		}
-		else
-		{
-			code = code<<(outputBufBiteLen);
-			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code);
-			outputBufByteLen += bits/32;
-			outputBufBiteLen = bits%32;
+			outputBuf[outputBufByteLen] |= (((smb&(1<<i))>>i)<<outputBufBiteLen);
+			outputBufBiteLen++;
+			if(outputBufBiteLen==8)
+			{
+				outputBufByteLen++;
+				outputBufBiteLen = 0;
+			}
 		}
 	}
 	
@@ -340,19 +325,7 @@ class huffmanTree
 		
 		fwrite((char*)outputBuf, 1, outputBufByteLen, fp);
 		
-		fwrite((char*)outputBuf+outputBufByteLen, 1, ((outputBufBiteLen%8)>0 ? 1 : 0), fp);
-		
-		//uint32_t tmp = outputBuf[outputBufByteLen];
-		//unsigned char *bt = ((unsigned char *)(&tmp));
-		//bt+=3;
-		/*
-		for(int i=0; i<outputBufBiteLen; i+=8)
-		{
-			fwrite(bt, 1, 1, fp);
-			bt -= 1;
-		}
-		*/
-		
+		fwrite((char*)outputBuf+outputBufByteLen, 1, ((outputBufBiteLen>0) ? 1 : 0), fp);
 		
 		outputBufByteLen = 0;
 		outputBufBiteLen = 0;

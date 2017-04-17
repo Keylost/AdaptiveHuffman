@@ -80,9 +80,8 @@ int encoder(const char* filePathInp, const char* filePathOut)
 	
 	if(bytesReaded == 0)
 	{
-		outputFileSize += tree.outputBufByteLen*4;
-		outputFileSize += tree.outputBufBiteLen/8;
-		outputFileSize += (tree.outputBufBiteLen%8>0 ? 1 : 0);
+		outputFileSize += tree.outputBufByteLen;
+		outputFileSize += (tree.outputBufBiteLen>0 ? 1 : 0);
 		tree.bufferFlushWithEOF(fpOut);
 		printf("[I]: Compression complete\n");
 		printf("[INFO]:\n");
@@ -143,7 +142,6 @@ int decoder(const char* filePathInp, const char* filePathOut)
 	{
 		for(int byte=0;byte<bytesReaded;byte++)
 		{
-			//
 			for(int bit=0;bit<8;bit++)
 			{
 				if(asciiState)
