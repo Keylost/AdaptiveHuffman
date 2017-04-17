@@ -1,3 +1,6 @@
+//-o inputDec.txt -d out.txt
+//-e input.txt -o out.txt
+
 
 #ifndef HUFFMAN
 
@@ -55,32 +58,12 @@ class huffmanTreeNode
 	
 	uint32_t weight;
 	
-	uint32_t symbolCode;
-	uint32_t symbolLen;
-	
 	huffmanTreeNode(huffmanTreeNode* _parent)
 	{
 		left = NULL;
 		right = NULL;
 		parent = _parent;
 		weight = 0;
-		
-		if(parent!=NULL)
-		{
-			symbolCode = parent->symbolCode;
-			symbolLen = parent->symbolLen;
-		}
-		else
-		{
-			symbolLen = 0;
-			symbolCode = 0;
-		}
-	}
-	
-	void symbolCodePushBack(uint32_t c)
-	{
-		if(c!=0) symbolCode = symbolCode|(1<<(symbolLen));
-		symbolLen++;
 	}
 };
 
@@ -90,7 +73,7 @@ class huffmanTree
 	Simbol *simbols;
 	std::vector<huffmanTreeNode*> nodeList; 
 	
-	uint32_t *outputBuf;
+	unsigned char *outputBuf;
 	uint32_t outputBufByteLen;
 	uint32_t outputBufBiteLen;
 	
@@ -102,10 +85,10 @@ class huffmanTree
 		outputBufByteLen = 0;
 		outputBufBiteLen = 0;
 		
-		outputBuf = new uint32_t[BUFFERSIZE];
+		outputBuf = new unsigned char[BUFFERSIZE];
 		memset(outputBuf, '\0', BUFFERSIZE);
 		
-		simbols = new Simbol[(int)pow(2,BIT_PER_SIMBOL)];
+		simbols = new Simbol[256];
 		
 		rootNode = new huffmanTreeNode(NULL);
 		nodeList.push_back(rootNode);
@@ -146,7 +129,6 @@ class huffmanTree
 		}
 	}
 	
-	//int cnt = 0;
 	void add(unsigned char smb)
 	{
 		if(simbols[smb].ref == NULL)
@@ -165,13 +147,10 @@ class huffmanTree
 			 * Создать лист под новый элемент и новый пустой элемент
 			 */
 			emptyNode->left = new huffmanTreeNode(emptyNode);
-			emptyNode->left->symbolCodePushBack(0); //левая ветвь с кодом 0
-			//emptyNode->left->weight = 1; //в левый лист помещается новый символ
 			nodeList.push_back(emptyNode->left);
 			emptyNode->left->indexInNodeList = (nodeList.size()-1);
 			
 			emptyNode->right = new huffmanTreeNode(emptyNode);
-			emptyNode->right->symbolCodePushBack(1); //правая ветвь с кодом 1
 			nodeList.push_back(emptyNode->right);
 			emptyNode->right->indexInNodeList = (nodeList.size()-1);
 			
@@ -201,9 +180,10 @@ class huffmanTree
 		
 		while(curNode->parent)
 		{
-			if(node->parent->right == node)
+			code = code<<1;
+			if(curNode->parent->right == curNode)
 			{
-				code = code|(1<<len);
+				code |= (1);
 			}
 			len++;
 			curNode = curNode->parent;
@@ -217,15 +197,17 @@ class huffmanTree
 			uint32_t codebkp = code;
 			uint32_t left = (bits-32);
 			code = code>>left;
+			code = code<<left;
 			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code);
 			outputBufByteLen += 1;
-			codebkp = codebkp<<(32-left);
+			codebkp = codebkp<<(left);
+			codebkp = codebkp>>(left);
 			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(codebkp);
 			outputBufBiteLen = left;
 		}
 		else
 		{
-			code = code<<(32-bits);
+			code = code<<(outputBufBiteLen);
 			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code);
 			outputBufByteLen += bits/32;
 			outputBufBiteLen = bits%32;
@@ -241,15 +223,17 @@ class huffmanTree
 			uint32_t codebkp = code;
 			uint32_t left = (bits-32);
 			code = code>>left;
+			code = code<<left;
 			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code);
 			outputBufByteLen += 1;
-			codebkp = codebkp<<(32-left);
+			codebkp = codebkp<<(left);
+			codebkp = codebkp>>(left);
 			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(codebkp);
 			outputBufBiteLen = left;
 		}
 		else
 		{
-			code = code<<(32-bits);
+			code = code<<(outputBufBiteLen);
 			outputBuf[outputBufByteLen] = outputBuf[outputBufByteLen]|(code);
 			outputBufByteLen += bits/32;
 			outputBufBiteLen = bits%32;
@@ -261,7 +245,7 @@ class huffmanTree
 		huffmanTreeNode *curNode = node;
 		while(curNode != NULL)
 		{
-			int ind = curNode->indexInNodeList;// == 0 ? 0 : (curNode->indexInNodeList);
+			int ind = curNode->indexInNodeList;
 			
 			while(ind>0 && nodeList[ind-1]->weight == curNode->weight)
 			{
@@ -270,7 +254,7 @@ class huffmanTree
 			
 			printf("ind %d\n", ind);
 			
-			if(ind == curNode->indexInNodeList || curNode->parent == nodeList[ind] || ind == 0) //nodeList[ind]->weight > curNode->weight
+			if(ind == curNode->indexInNodeList || curNode->parent == nodeList[ind] || ind == 0)
 			{
 				curNode->weight++;
 			}
@@ -278,7 +262,6 @@ class huffmanTree
 			{
 				printf("update+++++++++++++++++++++++++++++++++++++++++++\n");
 				curNode->weight++;
-				//if(nodeList[ind]->left == NULL) //если лист, меняем листы
 				{
 					huffmanTreeNode *ndlp = nodeList[ind]->parent;
 					if(nodeList[ind]->parent->left == nodeList[ind]) //левый сын
@@ -327,20 +310,7 @@ class huffmanTree
 					curNode->indexInNodeList = ind;
 					
 					nodeList[ind] = curNode;
-					
-					//curNode = nodeList[indtmp];
-					
-					uint32_t smc = nodeList[indtmp]->symbolCode;
-					uint32_t sml = nodeList[indtmp]->symbolLen;
-					
-					nodeList[indtmp]->symbolCode = nodeList[ind]->symbolCode;
-					nodeList[indtmp]->symbolCode = nodeList[ind]->symbolLen;
-					
-					nodeList[ind]->symbolCode = smc;
-					nodeList[ind]->symbolCode = sml;
-					
 				}
-				///нужно обновлять коды
 			}
 			curNode = curNode->parent;
 		}
@@ -350,7 +320,7 @@ class huffmanTree
 	{
 		printf("flushed %d\n", outputBufByteLen*4);
 		
-		fwrite(outputBuf, 4, outputBufByteLen, fp);
+		fwrite(outputBuf, 1, outputBufByteLen, fp);
 		if(outputBufBiteLen>0)
 		{
 			uint32_t tmp = outputBuf[outputBufByteLen];
@@ -363,63 +333,31 @@ class huffmanTree
 
 	void bufferFlushWithEOF(FILE *fp) //выводит полностью заполненные четырехбайтовые наборы в файл, а также все биты. В конец добавляет ESC-символ.
 	{
-		outputBufPushBack(emptyNode->symbolCode, emptyNode->symbolLen);
+		outputBufPushBack(emptyNode);
+		printf("flushed %d\n", outputBufByteLen);
 		
-		printf("flushed %d\n", outputBufByteLen*4);
+		//printSimbol(outputBuf[0]);
 		
-		fwrite(outputBuf, 4, outputBufByteLen, fp);
+		fwrite((char*)outputBuf, 1, outputBufByteLen, fp);
 		
-		uint32_t tmp = outputBuf[outputBufByteLen];
-		unsigned char *bt = ((unsigned char *)(&tmp));
+		fwrite((char*)outputBuf+outputBufByteLen, 1, ((outputBufBiteLen%8)>0 ? 1 : 0), fp);
 		
+		//uint32_t tmp = outputBuf[outputBufByteLen];
+		//unsigned char *bt = ((unsigned char *)(&tmp));
+		//bt+=3;
+		/*
 		for(int i=0; i<outputBufBiteLen; i+=8)
 		{
 			fwrite(bt, 1, 1, fp);
-			bt += 1;
+			bt -= 1;
 		}
+		*/
+		
 		
 		outputBufByteLen = 0;
 		outputBufBiteLen = 0;
 		
 		memset(outputBuf, '\0', BUFFERSIZE);
-	}
-	
-	void decodeBites(unsigned char *buffer, uint32_t bufferLen, std::vector<char> outBuf)
-	{
-		uint32_t curByte = 0;
-		uint32_t curBite = 0;
-		huffmanTreeNode *curNode = rootNode;
-		huffmanTreeNode *prevNode = rootNode;
-		
-		for(int byte=0;byte<bufferLen;byte++)
-		{
-			//curNode = rootNode;
-			for(int bit=0;bit<8;bit++)
-			{
-				prevNode = curNode;
-				if( (buffer[curByte]&(1<<bit)) )
-				{
-					curNode = curNode->right;
-				}
-				else
-				{
-					curNode = curNode->left;
-				}
-				if(!curNode)
-				{
-					if(prevNode->weight)
-					{
-						outBuf.push_back((char)(prevNode->indexInNodeList));
-					}
-					else
-					{
-						
-					}
-				}
-			}
-			byte++;
-		}
-		
 	}
 	
 };

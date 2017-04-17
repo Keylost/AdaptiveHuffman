@@ -132,20 +132,40 @@ int decoder(const char* filePathInp, const char* filePathOut)
 	fileSize = ftell(fpInp); //текущее смещение внутри файла
 	rewind(fpInp); //в начало файла
 	
+	huffmanTreeNode *curNode = tree.rootNode;
+	huffmanTreeNode *prevNode = tree.rootNode;
+	
+	bool asciiState = true;
+	unsigned char asciiSymbol = '\0';
+	uint32_t asciiLen = 0;
+		
 	while((bytesReaded  = fread(buffer, 1, BUFFERSIZE, fpInp))>0)
 	{
-		uint32_t curByte = 0;
-		uint32_t curBite = 0;
-		huffmanTreeNode *curNode = rootNode;
-		huffmanTreeNode *prevNode = rootNode;
-		
 		for(int byte=0;byte<bytesReaded;byte++)
 		{
 			//
 			for(int bit=0;bit<8;bit++)
 			{
+				if(asciiState)
+				{
+					if( (buffer[byte]&(1<<bit)) )
+					{
+						asciiSymbol |= (1<<asciiLen);
+					}
+					asciiLen++;
+					if(asciiLen == 8)
+					{
+						asciiState = false;
+						asciiLen = 0;
+						outBuf.push_back(asciiSymbol);
+						tree.add(asciiSymbol);
+						asciiSymbol = '\0';
+					}
+					continue;
+				}
+				
 				prevNode = curNode;
-				if( (buffer[curByte]&(1<<bit)) )
+				if( (buffer[byte]&(1<<bit)) )
 				{
 					curNode = curNode->right;
 				}
@@ -153,47 +173,50 @@ int decoder(const char* filePathInp, const char* filePathOut)
 				{
 					curNode = curNode->left;
 				}
-				if(!curNode)
+				if(!curNode->left)
 				{
-					if(prevNode->weight)
+					if(curNode->weight)
 					{
-						outBuf.push_back(prevNode->symbolValue);
-						tree.add(prevNode->symbolValue);
+						outBuf.push_back(curNode->symbolValue);
+						tree.add(curNode->symbolValue);
 						if(tree.outputBufByteLen > BUFFERSIZE-3) tree.outputBufByteLen = 0;
-						curNode = rootNode;
-						prevNode = rootNode;
+						curNode = tree.rootNode;
+						prevNode = tree.rootNode;
 					}
 					else
 					{
-						if( (bytesReaded-byte)*8-bit < 8 )
-						{
-							
-						}
-						else
-						{
-							
-						}
+						asciiState = true;
+						curNode = tree.rootNode;
+						prevNode = tree.rootNode;
 					}
 				}
 			}
-			byte++;
+		}
+		if(outBuf.size()>256)
+		{
+			for(int i=0;i<outBuf.size();i++)
+			{
+				printf("%c ", outBuf[i]);
+			}
+			printf("\n");
+			fwrite(outBuf.data(), 1, outBuf.size(), fpOut);
+			outBuf.clear();
 		}
 	}
 	
 	if(bytesReaded == 0)
 	{
-		printBinary(tree);
-		tree.bufferFlushWithEOF(fpOut);
-		printf("[I]: Compression complete\n");
+		if(outBuf.size()>0)
+		{
+			fwrite(outBuf.data(), 1, outBuf.size(), fpOut);
+			outBuf.clear();
+		}
+		printf("[I]: Decompression complete\n");
 	}
 	else
 	{
 		printf("[E]: Error occured while reading input stream\n");
 	}
-	
-	tree.printTree();
-	huffmanTreeNode* root = tree.rootNode;
-	tree.printTreeCG(root,0);
 	
 	fclose(fpInp);
 	fclose(fpOut);		
