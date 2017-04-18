@@ -89,6 +89,9 @@ int encoder(const char* filePathInp, const char* filePathOut)
 		printf("Output file size:  %d bytes\n", outputFileSize);
 		printf("Compression ratio: %f\n", (double)fileSize/outputFileSize);
 		printf("Compression time:  %lu ms\n", tim.get(rtimer_ms));
+		
+		tree.printTreeCG(tree.rootNode,0);
+		tree.printTree();
 	}
 	else
 	{

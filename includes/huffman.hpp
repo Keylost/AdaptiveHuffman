@@ -241,48 +241,8 @@ class huffmanTree
 				//лист-лист
 				//лист-узел
 				//узел-узел
-				if(nodeList[ind]->left && curNode->left) //лист-лист
+				if(!nodeList[ind]->left && !curNode->left) //лист-лист
 				{
-					
-				}
-				else if(nodeList[ind]->left || curNode->left) //лист-узел
-				{
-					if(nodeList[ind]->left)
-					{
-						printf("[E]: bad impossible situation!!!\n");
-						char c=0;
-						scanf("%c\n", &c);						
-					}
-					huffmanTreeNode *node = new huffmanTreeNode(nodeList[ind]->parent);
-					
-					if(nodeList[ind]->parent->right == nodeList[ind])
-					{
-						nodeList[ind]->parent->right = node;
-					}
-					else
-					{
-						nodeList[ind]->parent->left = node;
-					}
-					
-					node->left = nodeList[ind];
-					node->right = curNode->left;
-					
-					curNode->parent->right = curNode->right;
-					
-					//nodeList.erase(nodeList.begin()+curNode->indexInNodeList);
-					delete curNode;
-					
-					
-					
-				}
-				else //узел-узел
-				{
-					printf("[E]: bad impossible situation!!!\n");
-					char c=0;
-					scanf("%c\n", &c);
-				}
-				
-				
 					huffmanTreeNode *ndlp = nodeList[ind]->parent;
 					if(nodeList[ind]->parent->left == nodeList[ind]) //левый сын
 					{
@@ -329,7 +289,49 @@ class huffmanTree
 					
 					curNode->indexInNodeList = ind;
 					
-					nodeList[ind] = curNode;
+					nodeList[ind] = curNode;					
+				}
+				else if(nodeList[ind]->left || curNode->left) //лист-узел
+				{
+					if(nodeList[ind]->left)
+					{
+						printf("[E]: bad impossible situation!!!\n");
+						char c=0;
+						scanf("%c\n", &c);						
+					}
+					huffmanTreeNode *ndlp = nodeList[ind];
+					huffmanTreeNode *cn_parent = curNode->parent;
+					huffmanTreeNode *cn_right_son = curNode->right;
+					
+					if(ndlp->parent->right == ndlp)
+					{
+						ndlp->parent->right = curNode;
+					}
+					else
+					{
+						ndlp->parent->left = curNode;
+					}
+					
+					curNode->right = curNode->left;
+					curNode->left = ndlp;
+					curNode->parent = ndlp->parent;
+					ndlp->parent = curNode;
+					curNode->weight = curNode->left->weight+curNode->right->weight;
+					
+					cn_parent->right = cn_right_son;
+					cn_right_son->parent = cn_parent;
+					
+					nodeList[curNode->indexInNodeList] = ndlp;
+					nodeList[ind] = curNode;					
+					ndlp->indexInNodeList = curNode->indexInNodeList;
+					curNode->indexInNodeList = ind;
+				}
+				else //узел-узел
+				{
+					printf("[E]: bad impossible situation!!!\n");
+					char c=0;
+					scanf("%c\n", &c);
+				}
 			}
 			curNode = curNode->parent;
 		}
