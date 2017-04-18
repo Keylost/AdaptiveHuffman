@@ -1,2 +1,3 @@
-aabbbaaa
-ggg
+a
+b
+e

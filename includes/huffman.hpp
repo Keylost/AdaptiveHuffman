@@ -182,18 +182,9 @@ class huffmanTree
 		{
 			if(curNode->parent->right == curNode)
 			{
-				//outputBuf[outputBufByteLen] |= (1<<outputBufBiteLen);
 				code |= (1<<len);
 			}
 			len++;
-			/*
-			outputBufBiteLen++;
-			if(outputBufBiteLen==8)
-			{
-				outputBufByteLen++;
-				outputBufBiteLen = 0;
-			}
-			* */
 			curNode = curNode->parent;
 		}
 		
@@ -247,7 +238,51 @@ class huffmanTree
 			{
 				printf("update+++++++++++++++++++++++++++++++++++++++++++\n");
 				curNode->weight++;
+				//лист-лист
+				//лист-узел
+				//узел-узел
+				if(nodeList[ind]->left && curNode->left) //лист-лист
 				{
+					
+				}
+				else if(nodeList[ind]->left || curNode->left) //лист-узел
+				{
+					if(nodeList[ind]->left)
+					{
+						printf("[E]: bad impossible situation!!!\n");
+						char c=0;
+						scanf("%c\n", &c);						
+					}
+					huffmanTreeNode *node = new huffmanTreeNode(nodeList[ind]->parent);
+					
+					if(nodeList[ind]->parent->right == nodeList[ind])
+					{
+						nodeList[ind]->parent->right = node;
+					}
+					else
+					{
+						nodeList[ind]->parent->left = node;
+					}
+					
+					node->left = nodeList[ind];
+					node->right = curNode->left;
+					
+					curNode->parent->right = curNode->right;
+					
+					//nodeList.erase(nodeList.begin()+curNode->indexInNodeList);
+					delete curNode;
+					
+					
+					
+				}
+				else //узел-узел
+				{
+					printf("[E]: bad impossible situation!!!\n");
+					char c=0;
+					scanf("%c\n", &c);
+				}
+				
+				
 					huffmanTreeNode *ndlp = nodeList[ind]->parent;
 					if(nodeList[ind]->parent->left == nodeList[ind]) //левый сын
 					{
@@ -295,7 +330,6 @@ class huffmanTree
 					curNode->indexInNodeList = ind;
 					
 					nodeList[ind] = curNode;
-				}
 			}
 			curNode = curNode->parent;
 		}
