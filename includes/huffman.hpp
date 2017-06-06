@@ -33,6 +33,8 @@ bool getBitOfChar(char *byte, uint8_t bit)
  */
 
 void printSimbol(uint32_t c);
+void printSimbol(unsigned char c);
+
 void addCharToBitArray(std::vector<bool> &array, char ascii);
 
 class Simbol
@@ -165,8 +167,8 @@ class huffmanTree
 		
 		updateTree(simbols[smb].ref);
 		huffmanTreeNode* root = rootNode;
-		//printTreeCG(root,0);
-		//printf("-----------------------------------\n");
+		printTreeCG(root,0);
+		printf("-----------------------------------\n");
 		//printTree();
 		char c;
 		//scanf("%c\n", &c);
@@ -190,7 +192,8 @@ class huffmanTree
 		
 		for(int i=len-1;i>=0;i--)
 		{
-			outputBuf[outputBufByteLen] |= ((code>>i)<<outputBufBiteLen);
+			//outputBuf[outputBufByteLen] |= ((code>>i)<<outputBufBiteLen);
+			outputBuf[outputBufByteLen] |= (((code<<(len-i-1))>>(len-1))<<outputBufBiteLen);
 			outputBufBiteLen++;
 			if(outputBufBiteLen==8)
 			{
@@ -204,6 +207,7 @@ class huffmanTree
 	
 	void outputBufPushBack(unsigned char smb)
 	{
+		printSimbol(outputBuf[outputBufByteLen]);
 		for(int i=0;i<8;i++)
 		{
 			outputBuf[outputBufByteLen] |= (((smb&(1<<i))>>i)<<outputBufBiteLen);
@@ -216,6 +220,52 @@ class huffmanTree
 		}
 	}
 	
+	void updateTree(huffmanTreeNode *node)
+	{
+		huffmanTreeNode *curNode = node;
+		while(curNode != NULL)
+		{
+			int ind = curNode->indexInNodeList;
+			
+			while(ind>0 && nodeList[ind-1]->weight == curNode->weight)
+			{
+				ind--;
+			}
+			
+			printf("ind %d\n", ind);
+			
+			if(ind == curNode->indexInNodeList || curNode->parent == nodeList[ind] || ind == 0)
+			{
+				curNode->weight++;
+			}
+			else
+			{
+				printf("update+++++++++++++++++++++++++++++++++++++++++++\n");
+				curNode->weight++;
+				huffmanTreeNode *nodeToChg = nodeList[ind];
+				
+				huffmanTreeNode *nodeToChg_parent = nodeToChg->parent;
+				
+				nodeToChg->indexInNodeList = curNode->indexInNodeList;
+				curNode->indexInNodeList = ind;
+				
+				if(curNode->parent->left == curNode) curNode->parent->left = nodeToChg;
+				else curNode->parent->right = nodeToChg;
+				
+				if(nodeToChg->parent->left == nodeToChg) nodeToChg->parent->left = curNode;
+				else nodeToChg->parent->right = curNode;
+				
+				nodeList[ind] = curNode;
+				nodeList[nodeToChg->indexInNodeList] = nodeToChg;
+				
+				nodeToChg->parent = curNode->parent;
+				curNode->parent = nodeToChg_parent;
+			}
+			curNode = curNode->parent;
+		}
+	}
+	
+	/*
 	void updateTree(huffmanTreeNode *node) ///TODO: Нуждается в адской оптимизации
 	{
 		huffmanTreeNode *curNode = node;
@@ -336,6 +386,7 @@ class huffmanTree
 			curNode = curNode->parent;
 		}
 	}
+	* */
 	
 	void bufferFlush(FILE *fp) //выводит полностью заполненные четырехбайтовые наборы в файл. Биты остаются нетронуты
 	{

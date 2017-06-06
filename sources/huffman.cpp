@@ -11,6 +11,17 @@ void printSimbol(uint32_t c)
 	printf("\n");
 }
 
+void printSimbol(unsigned char c)
+{
+	printf("%c\t", c);
+	for(int i=0;i<8;i++)
+	{
+		if (c & (1<<(7-i))) printf("1");
+		else printf("0");
+	}
+	printf("\n");
+}
+
 void printBinary(huffmanTree &tree)
 {
 	for(int i=0;i<tree.outputBufByteLen;i++)
@@ -153,6 +164,7 @@ int decoder(const char* filePathInp, const char* filePathOut)
 					{
 						asciiSymbol |= (1<<asciiLen);
 					}
+					printSimbol(asciiSymbol);
 					asciiLen++;
 					if(asciiLen == 8)
 					{
@@ -160,6 +172,7 @@ int decoder(const char* filePathInp, const char* filePathOut)
 						asciiLen = 0;
 						outBuf.push_back(asciiSymbol);
 						tree.add(asciiSymbol);
+						//printSimbol(asciiSymbol);
 						asciiSymbol = '\0';
 					}
 					continue;
